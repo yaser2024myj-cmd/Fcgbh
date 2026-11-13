@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Hero - بايثون هيرو</title>
+    <style>
+        :root {
+            --bg-dark: #070b19;
+            --card-bg: rgba(15, 23, 42, 0.85);
+            --primary: #6366f1;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --accent-gold: #fbbf24;
+        }
+
+        * { box-sizing: border-box; font-family: 'Cairo', sans-serif; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background: radial-gradient(circle at top, #1e1b4b, #070b19), #000;
+            color: var(--text-main); 
+            margin: 0; 
+            padding: 10px; 
+            min-height: 100vh; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center;
+        }
+
+        .container { 
+            width: 100%; 
+            max-width: 520px; 
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            padding: 22px; 
+            border-radius: 28px; 
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.8);
+            display: flex; 
+            flex-direction: column; 
+            max-height: 92vh;
+            overflow-y: auto;
+        }
+
+        .header { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding-bottom: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 15px; 
+        }
+
+        button { 
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            color: white; border: none; padding: 12px 20px; border-radius: 16px; 
+            cursor: pointer; font-weight: 700; font-size: 15px; transition: 0.2s;
+        }
+        button:active { transform: scale(0.96); }
+
+        .btn-back { background: rgba(255,255,255,0.1); }
+        .btn-retry { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; }
+        
+        .streak-badge { 
+            background: linear-gradient(135deg, #ff7e5f, #feb47b); color: #fff; 
+            padding: 6px 16px; border-radius: 40px; font-weight: 800; font-size: 15px; 
+        }
+
+        h2, h3 { margin: 0; color: #fff; }
+
+        .interactive-card { 
+            background: rgba(255, 255, 255, 0.05);
+            padding: 18px; border-radius: 20px; margin-bottom: 12px; cursor: pointer; 
+            border: 1px solid rgba(255, 255, 255, 0.1); transition: 0.2s;
+            display: flex; flex-direction: column; align-items: center; text-align: center;
+        }
+        .interactive-card:active { transform: scale(0.98); background: rgba(255, 255, 255, 0.1); }
+
+        .section-box {
+            align-items: flex-start; text-align: right; padding: 20px;
+        }
+
+        .lesson-item { 
+            background: rgba(255, 255, 255, 0.04); padding: 16px; border-radius: 16px; 
+            margin-bottom: 10px; cursor: pointer; border: 1px solid rgba(255,255,255,0.08); 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .lesson-item:active { transform: scale(0.98); }
+        
+        .status-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid var(--text-dim); }
+        .status-done { background: #10b981; border-color: #10b981; box-shadow: 0 0 10px #10b981; }
+
+        .hidden { display: none !important; }
+
+        textarea { 
+            width: 100%; height: 120px; background: #070b19; color: #38bdf8; 
+            border: 1px solid #334155; border-radius: 16px; padding: 14px; 
+            font-family: monospace; font-size: 16px; resize: none; direction: ltr; text-align: left; 
+            margin-top: 10px; outline: none;
+        }
+        textarea:focus { border-color: #6366f1; }
+
+        .step-card { 
+            background: rgba(99, 102, 241, 0.1); padding: 14px; border-radius: 14px; 
+            margin-bottom: 10px; border-right: 4px solid #6366f1; font-size: 14px; line-height: 1.6;
+        }
+        
+        .feedback { 
+            margin-top: 15px; font-weight: 700; border-radius: 16px; padding: 14px; 
+            line-height: 1.5; text-align: center;
+        }
+        
+        .stars { font-size: 24px; color: var(--accent-gold); margin-top: 5px; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container" id="app">
+    <div class="header">
+        <div>
+            <button class="btn-back hidden" id="backBtn" onclick="goHome()">⬅️ القائمة</button>
+        </div>
+        <div class="streak-badge" id="streakDisplay">🔥 0</div>
+        <div>
+            <button class="btn-retry hidden" id="retryBtn" onclick="restartLesson()">🔄 إعادة</button>
+        </div>
+    </div>
+
+    <!-- 1. شاشة اختيار الفئة العمرية -->
+    <div id="ageScreen">
+        <h2 style="text-align: center; margin-bottom: 10px;">👋 أهلاً بك في بايثون هيرو</h2>
+        <p style="text-align: center; color: var(--text-dim); margin-bottom: 20px; font-size: 14px;">اختر فئتك العمرية لضبط أسلوب الشرح المفصل:</p>
+        
+        <div class="interactive-card" onclick="setAgeGroup('kids')">
+            <div style="font-size: 30px; margin-bottom: 5px;">🧸</div>
+            <h3 style="color: #34d399;">البراعم الصغار (5 - 9 سنوات)</h3>
+            <p style="color: var(--text-dim); font-size: 13px; margin-top: 5px;">شرح قصصي مشوق وتشبيهات من الحياة اليومية.</p>
+        </div>
+        
+        <div class="interactive-card" onclick="setAgeGroup('teens')">
+            <div style="font-size: 30px; margin-bottom: 5px;">🚀</div>
+            <h3 style="color: #60a5fa;">المغامرون (10 - 15 سنة)</h3>
+            <p style="color: var(--text-dim); font-size: 13px; margin-top: 5px;">أسلوب حماسي يركز على بناء وتطوير الألعاب.</p>
+        </div>
+        
+        <div class="interactive-card" onclick="setAgeGroup('adults')">
+            <div style="font-size: 30px; margin-bottom: 5px;">🧠</div>
+            <h3 style="color: #f472b6;">المحترفون (16 سنة فما فوق)</h3>
+            <p style="color: var(--text-dim); font-size: 13px; margin-top: 5px;">شرح هندسي وتوثيق تقني دقيق وعميق.</p>
+        </div>
+    </div>
+
+    <!-- 2. القائمة الرئيسية (القسمين: الأساسيات والفرعيات) -->
+    <div id="mainMenuScreen" class="hidden">
+        <h2 style="text-align: center; margin-bottom: 20px;">🐍 اختر مسار التعلم</h2>
+        
+        <div class="interactive-card section-box" onclick="selectSection('fundamentals')">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <span style="font-size: 24px;">🟩</span>
+                <h3 style="color: #4ade80; font-size: 19px;">القسم الأول: الأساسيات الإلزامية</h3>
+            </div>
+            <p style="color: var(--text-dim); font-size: 14px; margin: 0;">المتغيرات، أنواع البيانات، الطباعة، الشرط، الحلقات، والقوائم.</p>
+        </div>
+        
+        <div class="interactive-card section-box" onclick="selectSection('advanced')">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <span style="font-size: 24px;">🟦</span>
+                <h3 style="color: #60a5fa; font-size: 19px;">القسم الثاني: الفرعيات والمتقدمات</h3>
+            </div>
+            <p style="color: var(--text-dim); font-size: 14px; margin: 0;">الدوال، المعاملات، الملفات، الأخطاء، والبرمجة الكائنية (OOP).</p>
+        </div>
+    </div>
+
+    <!-- 3. شاشة قائمة الدروس -->
+    <div id="lessonListScreen" class="hidden">
+        <h2 id="sectionTitle" style="text-align: center; margin-bottom: 20px;"></h2>
+        <div id="lessonsContainer"></div>
+    </div>
+
+    <!-- 4. شاشة الدرس والشرح والتحدي -->
+    <div id="challengeScreen" class="hidden">
+        <h3 id="lessonTitleDisplay" style="color: var(--accent-gold); margin-top: 0; text-align: center; font-size: 20px;"></h3>
+        <div id="stepsContainer" style="margin-top: 15px;"></div>
+
+        <h4 style="margin: 15px 0 5px 0; color: #fff; font-size: 16px;">✍️ اكتب كود التحدي هنا:</h4>
+        <textarea id="codeInput" spellcheck="false" placeholder="# اكتب حلك البرمجي هنا..."></textarea>
+        
+        <button onclick="validateChallenge()" style="background: linear-gradient(135deg, #10b981, #059669); width: 100%; margin-top: 15px; font-size: 16px;">🚀 فحص الكود والتأكد</button>
+        <div id="feedbackArea" class="feedback hidden"></div>
+    </div>
+</div>
+
+<script>
+    // --- المنهج الكامل والمفصل 100% لبايثون ---
+    const curriculum = {
+        'fundamentals': [
+            {
+                id: 'f1', title: '1. أمر الطباعة (Print)', icon: '🖨️',
+                ages: {
+                    kids: [
+                        'مفهوم الدرس: أمر الطباعة print() هو الطريقة التي يجعل بها الكمبيوتر يتكلم ويرد عليك.',
+                        'كيف يعمل؟ نكتب كلمة print ثم نفتح قوسين () وبداخلهما نضع الكلام بين علامتي تنصيص "" أو \'\'.',
+                        'مثال توضيحي:\nprint("مرحباً بك")',
+                        'لماذا نستخدمه؟ لكي نعرض النتائج والرسائل على الشاشة.'
+                    ],
+                    teens: [
+                        'مفهوم الدرس: الدالة المدمجة print() مسؤولة عن إرسال المخرجات إلى الشاشة.',
+                        'القاعدة: تتقبل الدالة وسائط متعددة وتطبعها كالنصوص أو الأرقام.',
+                        'مثال توضيحي:\nprint("Game Started!")',
+                        'ملاحظة: النصوص يجب أن تحاط بعلامات اقتباس لكي يفهمها المفسر.'
+                    ],
+                    adults: [
+                        'مفهوم الدرس: الوظيفة الأساسية print() لإخراج البيانات (Output Stream).',
+                        'التفاصيل الفنية: تطبع الكائنات بعد تحويلها إلى تمثيل نصي.',
+                        'مثال توضيحي:\nprint("System Initialized")',
+                        'ملاحظة: إهمال علامات التنصيص للنصوص يولد خطأ NameError.'
+                    ]
+                },
+                task: 'اطبع الجملة التالية تماماً: Hello World',
+                check: (code) => {
+                    const clean = code.replace(/\s+/g, '');
+                    if (!clean.includes('print("HelloWorld")') && !clean.includes("print('HelloWorld')")) {
+                        if (!clean.includes('print')) return "خطأ: نسيت كتابة الدالة 'print'.";
+                        if (!clean.includes('(') || !clean.includes(')')) return "خطأ: نسيت وضع الأقواس ().";
+                        if (!clean.includes('"') && !clean.includes("'")) return "خطأ: النص يجب أن يكون داخل علامات تنصيص.";
+                        return "الكود غير دقيق، تأكد من مطابقة النص تماماً.";
+                    }
+                    return true;
+                }
+            },
+            {
+                id: 'f2', title: '2. المتغيرات (Variables)', icon: '📦',
+                ages: {
+                    kids: [
+                        'مفهوم الدرس: المتغير يشبه "الصندوق" أو "الحقيبة" التي نضع فيها شيئاً لنستخدمه لاحقاً.',
+                        'الطريقة: نكتب اسم الصندوق (مثل score) ثم علامة التساوي (=) ثم القيمة.',
+                        'مثال توضيحي:\npoints = 50',
+                        'الفائدة: بدلاً من حفظ الأرقام، نحفظها داخل صندوق باسم واضح.'
+                    ],
+                    teens: [
+                        'مفهوم الدرس: المتغير هو موقع مخزن في الذاكرة مخصص لحفظ بيانات متغيرة.',
+                        'القاعدة: نستخدم علامة التساوي (=) لإسناد القيم إلى الأسماء.',
+                        'مثال توضيحي:\nscore = 100',
+                        'ملاحظة: أسماء المتغيرات يجب ألا تبدأ بأرقام.'
+                    ],
+                    adults: [
+                        'مفهوم الدرس: المتغيرات هي مؤشرات (References) تشير إلى كائنات في ذاكرة بايثون.',
+                        'التفاصيل التقنية: بايثون لغة ديناميكية لا تستوجب تعريف النوع مسبقاً.',
+                        'مثال توضيحي:\nplayer_score = 100',
+                        'ملاحظة: التخصيص يتم عبر معامل الإسناد (Assignment Operator).'
+                    ]
+                },
+                task: 'أنشئ متغرياً باسم score وقيمته 100',
+                check: (code) => {
+                    const clean = code.replace(/\s+/g, '');
+                    if (!clean.includes('score=100')) {
+                        if (!clean.includes('score')) return "خطأ: اسم المتغير يجب أن يكون 'score'.";
+                        if (!clean.includes('=')) return "خطأ: نسيت معامل الإسناد '='.";
+                        if (!clean.includes('100')) return "خطأ: القيمة يجب أن تكون 100.";
+                        return "خطأ في بناء الجملة، راجع الكود.";
+                    }
+                    return true;
+                }
+            },
+            {
+                id: 'f3', title: '3. الجمل الشرطية (If / Else)', icon: '⚖️',
+                ages: {
+                    kids: [
+                        'مفهوم الدرس: الشرط يشبه لعبة "إذا حدث كذا.. افعل كذا، وإلا افعل شيئاً آخر".',
+                        'الطريقة: نكتب كلمة if ثم الشرط، ونقطتين فوق بعض :.',
+                        'مثال توضيحي:\nif score > 10:\n    print("فزت!")',
+                        'الفائدة: نجعل الكمبيوتر يتخذ قرارات ذكية بناءً على المعطيات.'
+                    ],
+                    teens: [
+                        'مفهوم الدرس: الجمل الشرطية تتحكم بمسار تنفيذ البرنامج بناءً على صحة شرط معين (True/False).',
+                        'القاعدة: نستخدم if والشرط المتبوع بـ : ثم المسافة البادئة.',
+                        'مثال توضيحي:\nif age >= 18:\n    print("مسموح")',
+                        'ملاحظة: المسافة البادئة (Indentation) ركن أساسي في بايثون.'
+                    ],
+                    adults: [
+                        'مفهوم الدرس: التحكم في تدفق البرنامج (Control Flow Statements) عبر تقييم تعبيرات بوليانية.',
+                        'التفاصيل التقنية: استخدام بنية if-elif-else للتعامل مع مسارات متعددة.',
+                        'مثال توضيحي:\nif status == "active":\n    run()',
+                        'ملاحظة: الإخلال بالمسافة البادئة يسبب IndentationError.'
+                    ]
+                },
+                task: 'اكتب شرطاً يفحص إن كانت x أكبر من 5 واطبع "كبير"',
+                check: (code) => {
+                    const clean = code.replace(/\s+/g, '');
+                    if (!clean.includes('ifx>5:') || !clean.includes('print')) {
+                        if (!clean.includes('if')) return "خطأ: يجب استخدام الكلمة المفتاحية 'if'.";
+                        if (!clean.includes('>')) return "خطأ: استخدم معامل الأكبر من (>).";
+                        if (!clean.includes(':')) return "خطأ: نسيت النقطتين الرأسيتين (:).";
+                        if (!clean.includes('print')) return "خطأ: يجب تنفيذ أمر طباعة داخل الشرط.";
+                        return "صيغة الشرط غير صحيحة، تأكد من الهيكلة والنقاط.";
+                    }
+                    return true;
+                }
+            },
+            {
+                id: 'f4', title: '4. الحلقات التكرارية (For / While)', icon: '🔄',
+                ages: {
+                    kids: [
+                        'مفهوم الدرس: التكرار يعني طلب تنفيذ أمر معين مرات عديدة بدون إعادة كتابته.',
+                        'الطريقة: نستخدم حلقة مثل for لتكرار الأوامر عددًا محددًا من المرات.',
+                        'مثال توضيحي:\nfor i in range(3):\n    print("مرحباً")',
+                        'الفائدة: توفير الوقت والجهد وتجنب تكرار الكود.'
+                    ],
+                    teens: [
+                        'مفهوم الدرس: الحلقات (Loops) تستخدم لتنفيذ كتلة من الأوامر بشكل متكرر.',
+                        'القاعدة: حلقة for تكرار محدد، بينما while تكرار مشروط.',
+                        'مثال توضيحي:\nfor x in range(5):\n    print(x)',
+                        'ملاحظة: دالة range() تحدد نطاق التكرار.'
+                    ],
+                    adults: [
+                        'مفهوم الدرس: تكرار العمليات الحسابية والمنطقية باستخدام Iteration Structures.',
+                        'التفاصيل التقنية: التعامل مع عناصر المجموعات والقوائم بكفاءة عبر التكرارات.',
+                        'مثال توضيحي:\nfor i in range(10):\n    process(i)',
+                        'ملاحظة: الحذر من الحلقات اللانهائية (Infinite Loops) في while.'
+                    ]
+                },
+                task: 'اكتب حلقة for تتكرر 3 مرات وتطبع رقم المتغير',
+                check: (code) => {
+                    const clean = code.replace(/\s+/g, '');
+                    if (!clean.includes('foriinrange(3):') || !clean.includes('print')) {
+                        if (!clean.includes('for')) return "خطأ: استخدم الكلمة المفتاحية 'for'.";
+                        if (!clean.includes('range(3)')) return "خطأ: استخدم range(3) للتكرار 3 مرات.";
+                        if (!clean.includes(':')) return "خطأ: نسيت النقطتين الرأسيتين (:).";
+                        return "صيغة الحلقة غير دقيقة، راجع الكود.";
+                    }
+                    return true;
+                }
+            },
+            {
+                id: 'f5', title: '5. القوائم (Lists)', icon: '📋',
+                ages: {
+                    kids: [
+                        'مفهوم الدرس: القائمة تشبه "سلة تسوق" نجمع فيها أشياء متعددة معاً.',
+                        'الطريقة: نضع العناصر بين قوسين مربعين [] ونفصل بينها بفاصلة ,.',
+                        'مثال توضيحي:\nfruits = ["تفاح", "موز"]',
+                        'الفائدة: تخزين مجموعة بيانات في متغير واحد مرتب.'
+                    ],
+                    teens: [
+                        'مفهوم الدرس: القائمة (List) هي هيكل بيانات مرن لتخزين عناصر متعددة بترتيب معين.',
+                        'القاعدة: تستخدم الأقواس المربعة []. الفهارس تبدأ من الصفر (0).',
+                        'مثال توضيحي:\nitems = [1, 2, 3]',
+                        'ملاحظة: العناصر داخل القائمة قابلة للتعديل.'
+                    ],
+                    adults: [
+                        'مفهوم الدرس: هياكل بيانات مدمجة متسلسلة (Mutable Sequences).',
+                        'التفاصيل التقنية: دعم عمليات التقطيع (Slicing) والإضافة والتعديل المباشر.',
+                        'مثال توضيحي:\ndata = [10, 20, 30]',
+                        'ملاحظة: الوصول لعنصر غير موجود يولد IndexError.'
+                    ]
+                },
+                task: 'أنشئ قائمة باسم my_list تحتوي على رقمين 1 و 2',
+                check: (code) => {
+                    const clean = code.replace(/\s+/g, '');
+                    if (!clean.includes('my_list=[1,2]') && !clean.includes('mylist=[1,2]')) {
+                        if (!clean.includes('my_list') && !clean.includes('mylist')) return "خطأ: سمِ القائمة 'my_list'.";
+                        if (!clean.includes('[') || !clean.includes(']')) return "خطأ: استخدم الأقواس المربعة [].";
+                        if (!clean.includes('1') || !clean.includes('2')) return "خطأ: العناصر يجب أن تكون 1 و 2.";
+                        return "هيكلية القائمة غير صحيحة.";
+                    }
+                    return true;
+                }
+            }
+        ],
+        'advanced': [
+            {
+                id: 'a1', title: '1. الدوال (Functions)', icon: '⚡',
+                ages: {
+                    kids: [
+                        'مفهوم الدرس: الدالة تشبه "آلة خفية" نعطيها مدخلات فتعطينا مخرجات جاهزة.',
+                        'الطريقة: نبدأ بكلمة def ثم اسم الدالة وأقواس ونقطتين.',
+                        'مثال توضيحي:\ndef say_hi():\n    print("أهلاً")',
+                        'الفائدة: كتابة الأوامر مرة واحدة واستدعاؤها متى شئنا.'
+                    ],
+                    teens: [
+                        'مفهوم الدرس: الدوال (Functions) تساعد على تنظيم الكود وتجنب تكراره.',
+                        'القاعدة: نستخدم def لتعريف دالة، ونستدعيها باسمها والأقواس.',
+                        'مثال توضيحي:\ndef add(a, b):\n    return a + b',
+                        'ملاحظة: يمكن تمرير معاملات (Arguments) للدوال.'
+                    ],
+                    adults: [
+                        'مفهوم الدرس: وحدات برمجية نمطية وقابلة لإعادة الاستخدام (Modular Programming).',
+                        'التفاصيل التقنية: استخدام كلمة return لإعادة القيم،
